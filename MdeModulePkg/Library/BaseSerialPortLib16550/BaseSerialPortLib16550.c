@@ -538,9 +538,9 @@ SerialPortInitialize (
     Initialized = FALSE;
   }
 
-  if (Initialized) {
-    return RETURN_SUCCESS;
-  }
+//X001_3  if (Initialized) {
+//X001_3    return RETURN_SUCCESS;
+//X001_3  }
 
   //
   // Wait for the serial port to be ready.

@@ -285,7 +285,20 @@ BuildHobFromBl (
   if (EFI_ERROR (Status)) {
     return Status;
   }
+// X001_2
+{
+  EFI_PEI_BIOS_STRING_HOB         BiosInfo;
+  EFI_PEI_BIOS_STRING_HOB         *NewBiosInfo;
 
+  Status = ParseBiosString (&BiosInfo);
+  if (!EFI_ERROR (Status)) {
+    NewBiosInfo = BuildGuidHob (&gAhcBiosStringGuid, sizeof (BiosInfo));
+    ASSERT (NewBiosInfo != NULL);
+    CopyMem (NewBiosInfo, &BiosInfo, sizeof (BiosInfo));
+    DEBUG ((DEBUG_INFO, "Created Bios String Hob\n"));
+  }
+}
+// X001_2
   //
   // Create guid hob for frame buffer information
   //

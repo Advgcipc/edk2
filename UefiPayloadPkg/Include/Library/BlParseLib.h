@@ -17,6 +17,7 @@
 #include <Guid/AcpiBoardInfoGuid.h>
 #include <UniversalPayload/AcpiTable.h>
 #include <UniversalPayload/SmbiosTable.h>
+#include <Guid/BiosStringHob.h>
 
 #define GET_BOOTLOADER_PARAMETER()  PcdGet64 (PcdBootloaderParameter)
 
@@ -148,4 +149,11 @@ ParseMiscInfo (
   VOID
   );
 
+//X001_2 >>
+RETURN_STATUS
+EFIAPI
+ParseBiosString (
+  OUT EFI_PEI_BIOS_STRING_HOB  *BiosInfo
+  );
+//X001_2 >>
 #endif

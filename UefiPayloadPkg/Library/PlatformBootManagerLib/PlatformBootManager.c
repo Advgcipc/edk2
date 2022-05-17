@@ -260,21 +260,21 @@ PlatformBootManagerAfterConsole (
   //
   PlatformRegisterFvBootOption (PcdGetPtr (PcdShellFile), L"UEFI Shell", LOAD_OPTION_ACTIVE);
 
-  if (FixedPcdGetBool (PcdBootManagerEscape)) {
-    Print (
-      L"\n"
-      L"Esc or Down      to enter Boot Manager Menu.\n"
-      L"ENTER           to boot directly.\n"
-      L"\n"
-      );
-  } else {
-    Print (
-      L"\n"
-      L"F2 or Down      to enter Boot Manager Menu.\n"
-      L"ENTER           to boot directly.\n"
-      L"\n"
-      );
-  }
+//X001_1  if (FixedPcdGetBool (PcdBootManagerEscape)) {
+//X001_1    Print (
+//X001_1      L"\n"
+//X001_1      L"Esc or Down      to enter Boot Manager Menu.\n"
+//X001_1      L"ENTER           to boot directly.\n"
+//X001_1      L"\n"
+//X001_1      );
+//X001_1  } else {
+//X001_1    Print (
+//X001_1      L"\n"
+//X001_1      L"F2 or Down      to enter Boot Manager Menu.\n"
+//X001_1      L"ENTER           to boot directly.\n"
+//X001_1      L"\n"
+//X001_1      );
+//X001_1  }
 }
 
 /**

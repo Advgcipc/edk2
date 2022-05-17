@@ -26,6 +26,9 @@
   FLASH_DEFINITION                    = UefiPayloadPkg/UefiPayloadPkg.fdf
   PCD_DYNAMIC_AS_DYNAMICEX            = TRUE
 
+#  DEFINE DEBUG_ENABLE                 = TRUE
+  DEFINE DEBUG_ENABLE                 = FALSE
+
   DEFINE SOURCE_DEBUG_ENABLE          = FALSE
   DEFINE PS2_KEYBOARD_ENABLE          = FALSE
   DEFINE RAM_DISK_ENABLE              = FALSE
@@ -33,7 +36,13 @@
   DEFINE UNIVERSAL_PAYLOAD            = FALSE
   DEFINE SECURITY_STUB_ENABLE         = TRUE
   DEFINE SMM_SUPPORT                  = FALSE
+!if $(DEBUG_ENABLE) == TRUE
   DEFINE PLATFORM_BOOT_TIMEOUT        = 3
+#//X001 >>>
+!else
+  DEFINE PLATFORM_BOOT_TIMEOUT        = 0
+!endif
+#//X001 >>>
   DEFINE ABOVE_4G_MEMORY              = TRUE
   DEFINE BOOT_MANAGER_ESCAPE          = FALSE
   DEFINE SD_MMC_TIMEOUT               = 1000000
@@ -66,11 +75,18 @@
   DEFINE UART_DEFAULT_DATA_BITS       = 8
   DEFINE UART_DEFAULT_PARITY          = 1
   DEFINE UART_DEFAULT_STOP_BITS       = 1
-  DEFINE DEFAULT_TERMINAL_TYPE        = 0
+  DEFINE DEFAULT_TERMINAL_TYPE        = 2
 
   # Enabling the serial terminal will slow down the boot menu redering!
+#//X001
+!if $(DEBUG_ENABLE) == TRUE
   DEFINE DISABLE_SERIAL_TERMINAL      = FALSE
-
+#  DEFINE DISABLE_SERIAL_TERMINAL      = TRUE
+#//X001 >>>
+!else
+  DEFINE DISABLE_SERIAL_TERMINAL      = TRUE
+!endif
+#//X001 >>>
   #
   #  typedef struct {
   #    UINT16  VendorId;          ///< Vendor ID to match the PCI device.  The value 0xFFFF terminates the list of entries.
@@ -603,6 +619,7 @@
 
   UefiPayloadPkg/BlSupportDxe/BlSupportDxe.inf
 
+  UefiPayloadPkg/BiosString/BiosString.inf
   #
   # SMBIOS Support
   #

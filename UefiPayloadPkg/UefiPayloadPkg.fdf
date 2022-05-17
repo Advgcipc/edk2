@@ -89,6 +89,7 @@ APRIORI DXE {
   INF  MdeModulePkg/Universal/ReportStatusCodeRouter/RuntimeDxe/ReportStatusCodeRouterRuntimeDxe.inf
   INF  MdeModulePkg/Universal/StatusCodeHandler/RuntimeDxe/StatusCodeHandlerRuntimeDxe.inf
   INF  UefiPayloadPkg/BlSupportDxe/BlSupportDxe.inf
+  INF  UefiPayloadPkg/BiosString/BiosString.inf
 }
 
 #
@@ -120,6 +121,8 @@ INF PcAtChipsetPkg/PcatRealTimeClockRuntimeDxe/PcatRealTimeClockRuntimeDxe.inf
 !if $(PERFORMANCE_MEASUREMENT_ENABLE)
   INF MdeModulePkg/Universal/Acpi/FirmwarePerformanceDataTableDxe/FirmwarePerformanceDxe.inf
 !endif
+
+INF UefiPayloadPkg/BiosString/BiosString.inf
 
 #
 # SMM Support
