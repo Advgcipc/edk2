@@ -28,9 +28,8 @@
     1,
     10,
     'V',
-    {"01/01/2018"},
-    {"XXXX"},
-    {"1234"}
+    {"01/01/2022"},
+    {0}
   };
 
 //----------------------------------------------------------------------------
@@ -61,18 +60,17 @@ BIOSStringCallBackReadyToBoot (
     
     Status = EFI_SUCCESS;
 
-    AsciiSPrintUnicodeFormat (iString, 
-                              ISTRSIZE, 
-                              L"%s %a-%a BIOS %c%d.%02d (%a) %s", 
-                              L"****",
-                              mBiosString->ProjectDep,
-                              mBiosString->ProjectName,
-                              mBiosString->BIOSFormalVersion,
-                              mBiosString->BIOSMajorVersion,
-                              mBiosString->BIOSMinorVersion,
-                              mBiosString->ProjectBuildDate,
-                              L"****");
+    DEBUG ((DEBUG_INFO, "mBiosString ProjectName %a\n", mBiosString->ProjectName));
 
+    AsciiSPrint (iString,ISTRSIZE, 
+                "**** %a BIOS %c%d.%02d (%a) ****", 
+                mBiosString->ProjectName,
+                mBiosString->BIOSFormalVersion,
+                mBiosString->BIOSMajorVersion,
+                mBiosString->BIOSMinorVersion,
+                mBiosString->ProjectBuildDate);
+
+    DEBUG ((DEBUG_INFO, "%a\n", iString));
     iStringSize = AsciiStrLen (iString);
 
     //
@@ -116,8 +114,10 @@ BiosStringEntryPoint (
   if (GuidHob1 != NULL) {
     NewBiosInfo = (EFI_PEI_BIOS_STRING_HOB *)GET_GUID_HOB_DATA (GuidHob1);
     CopyMem (&TempBS, NewBiosInfo, sizeof (EFI_PEI_BIOS_STRING_HOB));
-    DEBUG ((DEBUG_INFO, "TempBS %a-%a\n", TempBS.ProjectDep,TempBS.ProjectName));
-    DEBUG ((DEBUG_INFO, "NewBiosInfo %a-%a\n", NewBiosInfo->ProjectDep,NewBiosInfo->ProjectName));
+//    DEBUG ((DEBUG_INFO, "TempBS %a-%a\n", TempBS.ProjectDep,TempBS.ProjectName));
+//    DEBUG ((DEBUG_INFO, "NewBiosInfo %a-%a\n", NewBiosInfo->ProjectDep,NewBiosInfo->ProjectName));
+    DEBUG ((DEBUG_INFO, "TempBS %a\n", TempBS.ProjectName));
+    DEBUG ((DEBUG_INFO, "NewBiosInfo %a\n", NewBiosInfo->ProjectName));
   }
   
   Status = EfiCreateEventReadyToBootEx (

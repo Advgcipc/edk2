@@ -19,8 +19,8 @@ typedef struct {
   UINT8 BIOSMinorVersion;
   CHAR8 BIOSFormalVersion;
   CHAR8 ProjectBuildDate[16];
-  CHAR8 ProjectDep[8];
-  CHAR8 ProjectName[8];
+//X002  CHAR8 ProjectDep[8];
+  CHAR8 ProjectName[16];
 } EFI_PEI_BIOS_STRING_HOB;
 
 #endif
