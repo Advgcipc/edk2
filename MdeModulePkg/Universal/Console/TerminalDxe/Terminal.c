@@ -9,6 +9,33 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 **/
 
 #include "Terminal.h"
+//X003
+#include <PiDxe.h>
+
+#include <Library/HobLib.h>
+#include <Guid/BiosStringHob.h>
+
+BOOLEAN
+EFIAPI
+CheckFromGlobalVariableHob (
+  )
+{
+  BOOLEAN  Termflag = FALSE;
+  EFI_HOB_GUID_TYPE *GuidHob;
+  EFI_SECURE_BOOT_KEYS_HOB *KeysHob;
+
+  GuidHob = GetFirstGuidHob (&gEfiGlobalVariableGuid);
+  if (GuidHob == NULL) {
+    return Termflag;
+  }
+
+  KeysHob = (EFI_SECURE_BOOT_KEYS_HOB *)GET_GUID_HOB_DATA (GuidHob);
+  if (KeysHob->SerialTerminalDefault != 0)
+//    Termflag = FALSE;
+    Termflag = TRUE;
+    
+  return Termflag;
+}
 
 //
 // Globals
@@ -1353,6 +1380,7 @@ InitializeTerminal (
   //
   // Install driver model protocol(s).
   //
+  if (CheckFromGlobalVariableHob ()){
   Status = EfiLibInstallDriverBindingComponentName2 (
              ImageHandle,
              SystemTable,
@@ -1362,7 +1390,9 @@ InitializeTerminal (
              &gTerminalComponentName2
              );
   ASSERT_EFI_ERROR (Status);
-
+  } else {
+    Status = EFI_SUCCESS;
+  }
   return Status;
 }
 

@@ -237,8 +237,15 @@ INF MdeModulePkg/Universal/ResetSystemRuntimeDxe/ResetSystemRuntimeDxe.inf
 !if $(UNIVERSAL_PAYLOAD) == FALSE
   !if $(SECURE_BOOT_ENABLE) == TRUE
     INF SecurityPkg/VariableAuthenticated/SecureBootConfigDxe/SecureBootConfigDxe.inf
+#//X003_1
+    INF SecurityPkg/VariableAuthenticated/SecureBootDefaultKeysDxe/SecureBootDefaultKeysDxe.inf
+    INF UefiPayloadPkg/Keys/PK/PK.inf            # PK
+    INF UefiPayloadPkg/Keys/KEK/KEK.inf          # PK
+    INF UefiPayloadPkg/Keys/DB/DB.inf            # PK
+    INF UefiPayloadPkg/Keys/DBT/DBT.inf          # PK
   !endif
 !endif
+
 
 INF UefiCpuPkg/CpuIo2Dxe/CpuIo2Dxe.inf
 INF MdeModulePkg/Universal/DevicePathDxe/DevicePathDxe.inf
@@ -253,6 +260,8 @@ INF MdeModulePkg/Universal/DisplayEngineDxe/DisplayEngineDxe.inf
 INF MdeModulePkg/Universal/PlatformDriOverrideDxe/PlatformDriOverrideDxe.inf
 INF MdeModulePkg/Universal/EbcDxe/EbcDxe.inf
 INF UefiPayloadPkg/BlSupportDxe/BlSupportDxe.inf
+#//X001_2
+INF  UefiPayloadPkg/BiosString/BiosString.inf
 
 INF MdeModulePkg/Universal/SmbiosDxe/SmbiosDxe.inf
 !if $(BOOTSPLASH_IMAGE)
@@ -402,6 +411,13 @@ READ_LOCK_STATUS   = TRUE
 
 INF SecurityPkg/VariableAuthenticated/SecureBootConfigDxe/SecureBootConfigDxe.inf
 
+#//X003_1
+    INF SecurityPkg/VariableAuthenticated/SecureBootDefaultKeysDxe/SecureBootDefaultKeysDxe.inf
+#    INF UefiPayloadPkg/Keys/PK/PK.inf
+#    INF UefiPayloadPkg/Keys/KEK/KEK.inf
+#    INF UefiPayloadPkg/Keys/DB/DB.inf
+#    INF UefiPayloadPkg/Keys/DBT/DBT.inf
+
 !endif
 !endif
 
@@ -524,3 +540,15 @@ INF SecurityPkg/VariableAuthenticated/SecureBootConfigDxe/SecureBootConfigDxe.in
     UI        STRING="Enter Setup"
     VERSION   STRING="$(INF_VERSION)" Optional BUILD_NUM=$(BUILD_NUMBER)
   }
+
+#//X003_1
+[Rule.Common.USER_DEFINED]
+  FILE FREEFORM = $(NAMED_GUID) {
+    RAW BIN                |.bin
+  }
+
+[Rule.Common.USER_DEFINED.BINARY]
+  FILE FREEFORM = $(NAMED_GUID) {
+    RAW BIN                |.bin
+  }
+

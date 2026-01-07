@@ -23,6 +23,128 @@
 #include <Library/SecureBootVariableLib.h>
 #include <Library/SecureBootVariableProvisionLib.h>
 #include <Library/DxeServicesLib.h>
+//X003
+#include <Library/HobLib.h>
+#include <Guid/BiosStringHob.h>
+
+
+/**
+  Searches all the availables firmware volumes and returns the first matching FFS section.
+
+  This function searches all the firmware volumes for FFS files with an FFS filename specified by NameGuid.
+  The order that the firmware volumes is searched is not deterministic. For each FFS file found a search
+  is made for FFS sections of type SectionType. If the FFS file contains at least SectionInstance instances
+  of the FFS section specified by SectionType, then the SectionInstance instance is returned in Buffer.
+  Buffer is allocated using AllocatePool(), and the size of the allocated buffer is returned in Size.
+  It is the caller's responsibility to use FreePool() to free the allocated buffer.
+  See EFI_FIRMWARE_VOLUME2_PROTOCOL.ReadSection() for details on how sections
+  are retrieved from an FFS file based on SectionType and SectionInstance.
+
+  If SectionType is EFI_SECTION_TE, and the search with an FFS file fails,
+  the search will be retried with a section type of EFI_SECTION_PE32.
+  This function must be called with a TPL <= TPL_NOTIFY.
+
+  If NameGuid is NULL, then ASSERT().
+  If Buffer is NULL, then ASSERT().
+  If Size is NULL, then ASSERT().
+
+
+  @param  NameGuid             A pointer to to the FFS filename GUID to search for
+                               within any of the firmware volumes in the platform.
+  @param  SectionType          Indicates the FFS section type to search for within
+                               the FFS file specified by NameGuid.
+  @param  SectionInstance      Indicates which section instance within the FFS file
+                               specified by NameGuid to retrieve.
+  @param  Buffer               On output, a pointer to a callee allocated buffer
+                               containing the FFS file section that was found.
+                               Is it the caller's responsibility to free this buffer
+                               using FreePool().
+  @param  Size                 On output, a pointer to the size, in bytes, of Buffer.
+
+  @retval  EFI_SUCCESS          The specified FFS section was returned.
+  @retval  EFI_NOT_FOUND        The specified FFS section could not be found.
+  @retval  EFI_OUT_OF_RESOURCES There are not enough resources available to
+                                retrieve the matching FFS section.
+  @retval  EFI_DEVICE_ERROR     The FFS section could not be retrieves due to a
+                                device error.
+  @retval  EFI_ACCESS_DENIED    The FFS section could not be retrieves because the
+                                firmware volume that
+                                contains the matching FFS section does not allow reads.
+**/
+EFI_STATUS
+EFIAPI
+GetSectionFromHob (
+  IN CONST  EFI_GUID          *NameGuid,
+  IN        EFI_SECTION_TYPE  SectionType,
+  IN        UINTN             SectionInstance,
+  OUT       VOID              **Buffer,
+  OUT       UINTN             *Size
+  )
+{
+  EFI_STATUS                Status = EFI_NOT_FOUND;
+  UINT8                     *SectionBuffer = NULL;
+  UINT32                    SectionBufferSize = 0;
+  EFI_HOB_GUID_TYPE         *GuidHob;
+  EFI_SECURE_BOOT_KEYS_HOB  *KeysHob;
+
+  GuidHob = GetFirstGuidHob (&gEfiGlobalVariableGuid);
+  if (GuidHob == NULL) {
+    return Status;
+  }
+  KeysHob = (EFI_SECURE_BOOT_KEYS_HOB *)GET_GUID_HOB_DATA (GuidHob);
+
+  if (CompareGuid (NameGuid, &gDefaultPKFileGuid)) {
+    if (KeysHob->PKKeySize != 0) {
+      SectionBuffer = (UINT8 *)(UINTN) (KeysHob->PKKeyAddress);
+      SectionBufferSize = KeysHob->PKKeySize;
+    }
+  } else if (CompareGuid (NameGuid, &gDefaultKEKFileGuid)) {
+    if (KeysHob->KEKKeySize != 0) {
+      SectionBuffer = (UINT8 *)(UINTN) (KeysHob->KEKKeyAddress);
+      SectionBufferSize = KeysHob->KEKKeySize;
+    }
+  } else if (CompareGuid (NameGuid, &gDefaultdbFileGuid)) {
+    if (KeysHob->DBKeySize != 0) {
+      SectionBuffer = (UINT8 *)(UINTN) (KeysHob->DBKeyAddress);
+      SectionBufferSize = KeysHob->DBKeySize;
+    }
+  } else if (CompareGuid (NameGuid, &gDefaultdbxFileGuid)) {
+    if (KeysHob->DBXKeySize != 0) {
+      SectionBuffer = (UINT8 *)(UINTN) (KeysHob->DBXKeyAddress);
+      SectionBufferSize = KeysHob->DBXKeySize;
+    }
+  } else if (CompareGuid (NameGuid, &gDefaultdbtFileGuid)) {
+    if (KeysHob->DBTKeySize != 0) {
+      SectionBuffer = (UINT8 *)(UINTN) (KeysHob->DBTKeyAddress);
+      SectionBufferSize = KeysHob->DBTKeySize;
+    }
+  }
+
+  if ((SectionBuffer != NULL) && (SectionBufferSize != 0)) {
+      UINT8 *pkey = SectionBuffer;
+      UINT32 total = 0;
+      UINT32 onekey = 0;
+      UINT8 i;
+
+      for (i = 0; i < SectionInstance; i++) {
+        onekey = (*((UINT32 *)pkey) & 0xFFFFFF);
+        if ((onekey & 0x3) != 0)
+          onekey = onekey + (4 - (onekey & 0x3));
+
+        total = total + onekey;
+        pkey = pkey + onekey;
+      }
+
+      if (total < SectionBufferSize) {
+        *Size = (UINTN) (*((UINT32 *)pkey) & 0xFFFFFF) - 4;
+        *Buffer = (VOID *)(pkey+4);
+        //DEBUG ((DEBUG_INFO, "SecureBootFetchData: Buffer: %p Size: %x\n", *Buffer, *Size));
+        Status = EFI_SUCCESS;
+
+      }
+  }
+  return Status;
+}
 
 /**
   Create a EFI Signature List with data fetched from section specified as a argument.
@@ -54,6 +176,7 @@ SecureBootFetchData (
   UINTN                         Index;
   SECURE_BOOT_CERTIFICATE_INFO  *CertInfo;
   SECURE_BOOT_CERTIFICATE_INFO  *NewCertInfo;
+  BOOLEAN     KeysFromHob = FALSE;
 
   KeyIndex      = 0;
   *SigListOut   = NULL;
@@ -68,6 +191,18 @@ SecureBootFetchData (
       CertInfo = NewCertInfo;
     }
 
+    Status = GetSectionFromHob (
+               KeyFileGuid,
+               EFI_SECTION_RAW,
+               KeyIndex,
+               &Buffer,
+               &Size
+               );
+//    DEBUG ((DEBUG_INFO, "SecureBootFetchData: GetSectionFromHob: %r\n", Status));
+    if (Status == EFI_SUCCESS)
+      KeysFromHob = TRUE;
+
+    if (!KeysFromHob && (Status != EFI_SUCCESS)) {
     Status = GetSectionFromAnyFv (
                KeyFileGuid,
                EFI_SECTION_RAW,
@@ -75,9 +210,15 @@ SecureBootFetchData (
                &Buffer,
                &Size
                );
+//    AsciiPrint ("SecureBootFetchData: GetSectionFromAnyFv: %r\n", Status);
+        DEBUG ((DEBUG_INFO, "SecureBootFetchData: GetSectionFromAnyFv: %r\n", Status));
+//        DEBUG ((DEBUG_INFO, "SecureBootFetchData: GetSectionFromAnyFv: %r\n",Buffer, Size));
+        DEBUG ((DEBUG_INFO, "GetSectionFromAnyFv: %p %x\n", Buffer, Size));
+    }
 
     if (Status == EFI_SUCCESS) {
       RsaPubKey = NULL;
+        DEBUG ((DEBUG_INFO, "key format: %p %x\n", Buffer, Size));
       if (RsaGetPublicKeyFromX509 (Buffer, Size, &RsaPubKey) == FALSE) {
         DEBUG ((DEBUG_ERROR, "%a: Invalid key format: %d\n", __func__, KeyIndex));
         FreePool (Buffer);
@@ -85,6 +226,7 @@ SecureBootFetchData (
         break;
       }
 
+        DEBUG ((DEBUG_INFO, "CertInfo %x: %p %x\n", KeyIndex, Buffer, Size));
       CertInfo[KeyIndex].Data     = Buffer;
       CertInfo[KeyIndex].DataSize = Size;
       KeyIndex++;
@@ -119,7 +261,8 @@ SecureBootFetchData (
 Cleanup:
   if (CertInfo) {
     for (Index = 0; Index < KeyIndex; Index++) {
-      FreePool ((VOID *)CertInfo[Index].Data);
+      if (!KeysFromHob)
+        FreePool ((VOID *)CertInfo[Index].Data);
     }
 
     FreePool (CertInfo);

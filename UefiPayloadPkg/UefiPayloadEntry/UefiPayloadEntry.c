@@ -266,7 +266,7 @@ FindFreeMemForHobCallback (
     return EFI_SUCCESS;
   }
 
-  *HobMemBase = MemoryMapEntry->Base;
+  *HobMemBase = (UINTN) MemoryMapEntry->Base;
 
   return EFI_ALREADY_STARTED;
 }

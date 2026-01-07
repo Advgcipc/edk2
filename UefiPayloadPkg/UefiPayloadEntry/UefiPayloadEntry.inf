@@ -73,6 +73,8 @@
   gUniversalPayloadSerialPortInfoGuid
   gEfiFirmwareInfoHobGuid
   gEfiSmmStoreInfoHobGuid
+#//X001_2
+  gAhcBiosStringGuid
 
 [FeaturePcd.IA32]
   gEfiMdeModulePkgTokenSpaceGuid.PcdDxeIplSwitchToLongMode      ## CONSUMES

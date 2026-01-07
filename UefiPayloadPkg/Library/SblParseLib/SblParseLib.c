@@ -291,6 +291,25 @@ ParseMiscInfo (
   return Status;
 }
 
+//X001_2
+RETURN_STATUS
+EFIAPI
+ParseBiosString (
+  OUT EFI_PEI_BIOS_STRING_HOB  *BiosInfo
+  )
+{
+  EFI_PEI_BIOS_STRING_HOB  *Bsnfo;
+
+  Bsnfo = (EFI_PEI_BIOS_STRING_HOB *)GetGuidHobDataFromSbl (&gAhcBiosStringGuid);
+  if (Bsnfo == NULL) {
+    return RETURN_NOT_FOUND;
+  }
+
+  CopyMem (BiosInfo, Bsnfo, sizeof (EFI_PEI_BIOS_STRING_HOB));
+
+  return RETURN_SUCCESS;
+}
+
 /**
   Find the SmmStore HOB.
 

@@ -8,6 +8,36 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 
 #include "SecureBootConfigImpl.h"
 
+//X003
+#include <Library/HobLib.h>
+#include <Guid/BiosStringHob.h>
+
+EFI_STATUS
+EnrollDefaultKey (
+  VOID
+  );
+
+EFI_STATUS
+EFIAPI
+UpdateSecureBootKeysFromGlobalVariableHob (
+  )
+{
+  EFI_STATUS  Status = EFI_NOT_FOUND;
+  EFI_HOB_GUID_TYPE *GuidHob;
+  EFI_SECURE_BOOT_KEYS_HOB *KeysHob;
+
+  GuidHob = GetFirstGuidHob (&gEfiGlobalVariableGuid);
+  if (GuidHob == NULL) {
+    return Status;
+  }
+
+  KeysHob = (EFI_SECURE_BOOT_KEYS_HOB *)GET_GUID_HOB_DATA (GuidHob);
+  if (KeysHob->SecureBootKeysDefaultLoad != 0) {
+    EnrollDefaultKey ();
+  }
+  return Status;
+}
+
 /**
   The entry point for SecureBoot configuration driver.
 
@@ -74,6 +104,8 @@ SecureBootConfigDriverEntryPoint (
   if (EFI_ERROR (Status)) {
     goto ErrorExit;
   }
+//X003
+  UpdateSecureBootKeysFromGlobalVariableHob ();
 
   return EFI_SUCCESS;
 

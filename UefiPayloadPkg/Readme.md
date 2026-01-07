@@ -1,6 +1,18 @@
 # UefiPayloadPkg
 Provide UEFI Universal Payload for different bootloader to generate EFI environment
 
+## Update History
+  >python UefiPayloadPkg/UniversalPayloadBuild.py -t VS2022
+  >python UefiPayloadPkg/UniversalPayloadBuild.py -t VS2022 -b RELEASE
+  
+  X003 Update Secure Boot Support
+      
+  X002 update PlatfromName size
+  
+  X001  1.Add DEBUG_ENABLE define to switch PLATFORM_BOOT_TIMEOUT 3 or 0. 
+        2.Add Bios String support. 
+        3.Removed Serial Io Initialized flag.
+
 # Spec
 - UniversalPayload URL: https://universalscalablefirmware.github.io/documentation/2_universal_payload.html
 - UniversalPayload URL: https://universalpayload.github.io/spec/

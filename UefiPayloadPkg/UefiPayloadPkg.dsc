@@ -33,6 +33,7 @@
   DEFINE RAM_DISK_ENABLE              = FALSE
   DEFINE SIO_BUS_ENABLE               = FALSE
   DEFINE SECURITY_STUB_ENABLE         = TRUE
+#//X003  
   DEFINE SMM_SUPPORT                  = FALSE
   DEFINE PLATFORM_BOOT_TIMEOUT        = 3
   DEFINE BOOT_MANAGER_ESCAPE          = FALSE
@@ -169,7 +170,8 @@
   #
   # Security
   #
-  DEFINE SECURE_BOOT_ENABLE       = FALSE
+#//X003  DEFINE SECURE_BOOT_ENABLE       = FALSE
+  DEFINE SECURE_BOOT_ENABLE       = TRUE
 
   #
   # Flat DeviceTree handoff option:
@@ -362,6 +364,7 @@
   SecureBootVariableLib|SecurityPkg/Library/SecureBootVariableLib/SecureBootVariableLib.inf
   PlatformPKProtectionLib|SecurityPkg/Library/PlatformPKProtectionLibVarPolicy/PlatformPKProtectionLibVarPolicy.inf
   SecureBootVariableProvisionLib|SecurityPkg/Library/SecureBootVariableProvisionLib/SecureBootVariableProvisionLib.inf
+
 !else
   AuthVariableLib|MdeModulePkg/Library/AuthVariableLibNull/AuthVariableLibNull.inf
 !endif
@@ -964,6 +967,14 @@
 
 !if $(SECURE_BOOT_ENABLE) == TRUE
   SecurityPkg/VariableAuthenticated/SecureBootConfigDxe/SecureBootConfigDxe.inf
+#//X003
+#  UefiPayloadPkg/Keys/PK/PK.inf            # PK
+#  UefiPayloadPkg/Keys/KEK/KEK.inf          # KEK
+#  UefiPayloadPkg/Keys/DB/DB.inf            # DB
+#  UefiPayloadPkg/Keys/DBX/DBX.inf          # DBX
+#  UefiPayloadPkg/Keys/DBT/DBT.inf          # DBT
+  SecurityPkg/VariableAuthenticated/SecureBootDefaultKeysDxe/SecureBootDefaultKeysDxe.inf
+
 !endif
 
   MdeModulePkg/Universal/BdsDxe/BdsDxe.inf
@@ -1040,6 +1051,8 @@
   MdeModulePkg/Universal/EbcDxe/EbcDxe.inf
 
   UefiPayloadPkg/BlSupportDxe/BlSupportDxe.inf
+#//X001_2
+  UefiPayloadPkg/BiosString/BiosString.inf
 
   #
   # SMBIOS Support

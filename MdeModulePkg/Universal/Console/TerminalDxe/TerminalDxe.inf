@@ -42,6 +42,8 @@
 [Packages]
   MdePkg/MdePkg.dec
   MdeModulePkg/MdeModulePkg.dec
+#//X003
+  UefiPayloadPkg/UefiPayloadPkg.dec
 
 [LibraryClasses]
   DevicePathLib

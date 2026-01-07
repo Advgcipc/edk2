@@ -4371,14 +4371,14 @@ KeyEnrollReset (
   )
 {
   EFI_STATUS  Status;
-  UINT8       SetupMode;
+//ddd  UINT8       SetupMode;
 
   Status = EFI_SUCCESS;
 
-  Status = SetSecureBootMode (CUSTOM_SECURE_BOOT_MODE);
-  if (EFI_ERROR (Status)) {
-    return Status;
-  }
+//ddd  Status = SetSecureBootMode (CUSTOM_SECURE_BOOT_MODE);
+//ddd  if (EFI_ERROR (Status)) {
+//ddd    return Status;
+//ddd  }
 
   // Clear all the keys and databases
   Status = DeleteDb ();
@@ -4405,37 +4405,37 @@ KeyEnrollReset (
     return Status;
   }
 
-  Status = DeletePlatformKey ();
-  if (EFI_ERROR (Status) && (Status != EFI_NOT_FOUND)) {
-    DEBUG ((DEBUG_ERROR, "Fail to clear PK: %r\n", Status));
-    return Status;
-  }
-
-  // After PK clear, Setup Mode shall be enabled
-  Status = GetSetupMode (&SetupMode);
-  if (EFI_ERROR (Status)) {
-    DEBUG ((
-      DEBUG_ERROR,
-      "Cannot get SetupMode variable: %r\n",
-      Status
-      ));
-    return Status;
-  }
-
-  if (SetupMode == USER_MODE) {
-    DEBUG ((DEBUG_INFO, "Skipped - USER_MODE\n"));
-    return EFI_SUCCESS;
-  }
-
-  Status = SetSecureBootMode (CUSTOM_SECURE_BOOT_MODE);
-  if (EFI_ERROR (Status)) {
-    DEBUG ((
-      DEBUG_ERROR,
-      "Cannot set CUSTOM_SECURE_BOOT_MODE: %r\n",
-      Status
-      ));
-    return EFI_SUCCESS;
-  }
+//  Status = DeletePlatformKey ();
+//  if (EFI_ERROR (Status) && (Status != EFI_NOT_FOUND)) {
+//    DEBUG ((DEBUG_ERROR, "Fail to clear PK: %r\n", Status));
+//    return Status;
+//  }
+//
+//  // After PK clear, Setup Mode shall be enabled
+//  Status = GetSetupMode (&SetupMode);
+//  if (EFI_ERROR (Status)) {
+//    DEBUG ((
+//      DEBUG_ERROR,
+//      "Cannot get SetupMode variable: %r\n",
+//      Status
+//      ));
+//    return Status;
+//  }
+//
+//  if (SetupMode == USER_MODE) {
+//    DEBUG ((DEBUG_INFO, "Skipped - USER_MODE\n"));
+//    return EFI_SUCCESS;
+//  }
+//
+//  Status = SetSecureBootMode (CUSTOM_SECURE_BOOT_MODE);
+//  if (EFI_ERROR (Status)) {
+//    DEBUG ((
+//      DEBUG_ERROR,
+//      "Cannot set CUSTOM_SECURE_BOOT_MODE: %r\n",
+//      Status
+//      ));
+//    return EFI_SUCCESS;
+//  }
 
   // Enroll all the keys from default variables
   Status = EnrollDbFromDefault ();
@@ -5367,4 +5367,70 @@ UninstallSecureBootConfigForm (
   if (mEndOpCodeHandle != NULL) {
     HiiFreeOpCodeHandle (mEndOpCodeHandle);
   }
+}
+
+
+EFI_STATUS
+EnrollDefaultKey (
+  VOID
+  )
+{
+  EFI_STATUS  Status;
+
+  Status = EFI_SUCCESS;
+
+  // Enroll all the keys from default variables
+  Status = EnrollDbFromDefault ();
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_ERROR, "Cannot enroll db: %r\n", Status));
+    goto error;
+  }
+
+  Status = EnrollDbxFromDefault ();
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_ERROR, "Cannot enroll dbx: %r\n", Status));
+  }
+
+  Status = EnrollDbtFromDefault ();
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_ERROR, "Cannot enroll dbt: %r\n", Status));
+  }
+
+  Status = EnrollKEKFromDefault ();
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_ERROR, "Cannot enroll KEK: %r\n", Status));
+    goto cleardbs;
+  }
+
+  Status = EnrollPKFromDefault ();
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_ERROR, "Cannot enroll PK: %r\n", Status));
+    goto clearKEK;
+  }
+
+  Status = SetSecureBootMode (STANDARD_SECURE_BOOT_MODE);
+  if (EFI_ERROR (Status)) {
+    DEBUG ((
+      DEBUG_ERROR,
+      "Cannot set CustomMode to STANDARD_SECURE_BOOT_MODE\n"
+      "Please do it manually, otherwise system can be easily compromised\n"
+      ));
+  }
+
+  return Status;
+
+clearKEK:
+  DeleteKEK ();
+
+cleardbs:
+  DeleteDbt ();
+  DeleteDbx ();
+  DeleteDb ();
+
+error:
+  if (SetSecureBootMode (STANDARD_SECURE_BOOT_MODE) != EFI_SUCCESS) {
+    DEBUG ((DEBUG_ERROR, "Cannot set mode to Secure: %r\n", Status));
+  }
+
+  return Status;
 }
