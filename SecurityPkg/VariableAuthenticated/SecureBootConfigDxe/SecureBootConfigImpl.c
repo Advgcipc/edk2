@@ -4371,14 +4371,14 @@ KeyEnrollReset (
   )
 {
   EFI_STATUS  Status;
-//ddd  UINT8       SetupMode;
+//X003  UINT8       SetupMode;
 
   Status = EFI_SUCCESS;
 
-//ddd  Status = SetSecureBootMode (CUSTOM_SECURE_BOOT_MODE);
-//ddd  if (EFI_ERROR (Status)) {
-//ddd    return Status;
-//ddd  }
+//X003  Status = SetSecureBootMode (CUSTOM_SECURE_BOOT_MODE);
+//  if (EFI_ERROR (Status)) {
+//    return Status;
+//  }
 
   // Clear all the keys and databases
   Status = DeleteDb ();
@@ -4404,7 +4404,7 @@ KeyEnrollReset (
     DEBUG ((DEBUG_ERROR, "Fail to clear KEK: %r\n", Status));
     return Status;
   }
-
+//X003
 //  Status = DeletePlatformKey ();
 //  if (EFI_ERROR (Status) && (Status != EFI_NOT_FOUND)) {
 //    DEBUG ((DEBUG_ERROR, "Fail to clear PK: %r\n", Status));
